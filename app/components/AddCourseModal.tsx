@@ -49,8 +49,12 @@ export default function AddCourseModal({
       setColor("#F97316");
 
       toast.success("Mata kuliah berhasil ditambahkan!");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (error) {
+      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -206,8 +206,12 @@ export default function TaskListPage() {
       toast.success("Tugas berhasil dihapus!", { id: toastId });
       fetchAllData();
       setIsDeleteModalOpen(false);
-    } catch (error: any) {
-      toast.error(error.message, { id: toastId });
+    } catch (error) {
+      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     }
   };
 

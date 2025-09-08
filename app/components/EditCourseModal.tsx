@@ -58,8 +58,12 @@ export default function EditCourseModal({
       toast.success("Mata kuliah berhasil diperbarui!", { id: toastId });
       onCourseUpdated();
       onClose();
-    } catch (err: any) {
-      toast.error(err.message, { id: toastId });
+    } catch (error) {
+      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

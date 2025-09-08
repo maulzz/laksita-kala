@@ -71,8 +71,12 @@ export default function EditTaskModal({
       toast.success("Tugas berhasil diperbarui!", { id: toastId });
       onTaskUpdated();
       onClose();
-    } catch (error: any) {
-      toast.error(error.message, { id: toastId });
+    } catch (error) {
+      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
