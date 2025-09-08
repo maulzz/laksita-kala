@@ -5,6 +5,7 @@
 import { useSession, signIn, signOut } from "next-auth/react"; // <-- Import
 import Image from "next/image";
 import { useState } from "react";
+import Link from "next/link";
 
 // ... (kode Navbar)
 export default function Navbar() {
@@ -27,12 +28,11 @@ export default function Navbar() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => signIn("google")}
-              className="rounded-full bg-orange-500 px-4 py-2 font-bold text-white transition-colors hover:bg-orange-600"
-            >
-              Login
-            </button>
+            <Link href="/login">
+              <button className="rounded-full bg-orange-500 px-4 py-2 font-bold text-white transition-colors hover:bg-orange-600">
+                Login
+              </button>
+            </Link>
           )}
 
           {/* ... (Tombol Theme Toggle) ... */}

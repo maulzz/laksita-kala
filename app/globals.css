@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.dark .fc {
+  --fc-border-color: theme('colors.gray.700');
+  --fc-daygrid-day-bg-color: transparent;
+  --fc-list-odd-row-bg-color: theme('colors.gray.900');
+}
+.dark .fc .fc-col-header-cell-cushion,
+.dark .fc .fc-daygrid-day-number,
+.dark .fc .fc-list-day-text,
+.dark .fc .fc-list-day-side-text {
+  color: theme('colors.gray.200'); 
+}
+
+
