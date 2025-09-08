@@ -5,16 +5,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, context: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session) return new NextResponse('Tidak diizinkan', { status: 401 });
 
   try {
     const { name, color } = await request.json();
-    const courseId = params.id;
+   const courseId = context.params.id;
 
     if (!name || !color) {
       return new NextResponse('Nama dan warna wajib diisi', { status: 400 });

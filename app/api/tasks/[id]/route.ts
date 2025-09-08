@@ -7,17 +7,14 @@ import prisma from '@/lib/prisma';
 
 export const revalidate = 0;
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, context: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return new NextResponse('Tidak diizinkan', { status: 401 });
   }
 
   try {
-    const taskId = params.id;
+    const taskId =context.params.id;
     const body = await request.json();
     const { title, description, courseId, startDate, dueDate, priority, taskType, status } = body;
 
