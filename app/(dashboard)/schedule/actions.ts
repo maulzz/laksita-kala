@@ -9,6 +9,9 @@ import { revalidatePath } from 'next/cache';
 import { ClassType, DayOfWeek } from '@/app/types';
 import { ScheduleWithCourse } from '@/app/components/ScheduleCard';
 
+type PrismaScheduleWithCourse = Awaited<ReturnType<typeof prisma.classSchedule.findMany>>[number];
+
+
 
 export async function getClassSchedules(): Promise<ScheduleWithCourse[]> {
   const session = await getServerSession(authOptions);
@@ -25,7 +28,7 @@ export async function getClassSchedules(): Promise<ScheduleWithCourse[]> {
       },
     });
 
-    const schedules = schedulesFromDb.map((schedule: any) => ({ 
+     const schedules = schedulesFromDb.map((schedule: PrismaScheduleWithCourse) => ({
       ...schedule,
       startTime: schedule.startTime.toISOString(),
       endTime: schedule.endTime.toISOString(),
