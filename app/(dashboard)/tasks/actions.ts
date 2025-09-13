@@ -5,10 +5,9 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { Task, TaskPriority, TaskStatus, TaskType } from '@/app/types';
-
-
-import { revalidatePath } from 'next/cache';
+import { Task, TaskPriority, TaskStatus, TaskType } from "@/app/types";
+import { revalidatePath } from "next/cache";
+import { Prisma } from "@/prisma/prisma/generated/wasm";
 
 interface TaskData {
   title: string;
@@ -19,7 +18,6 @@ interface TaskData {
   priority: TaskPriority;
   taskType: TaskType;
   status: TaskStatus;
-
 }
 
 export async function getTasks(): Promise<Task[]> {
@@ -47,7 +45,7 @@ export async function getTasks(): Promise<Task[]> {
       dueDate: task.dueDate.toISOString(),
     }));
 
-    return tasks; 
+    return tasks;
   } catch (error) {
     console.error("Database Error:", error);
     return [];
@@ -57,15 +55,14 @@ export async function getTasks(): Promise<Task[]> {
 export async function createTask(data: TaskData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return { error: 'Tidak diizinkan' };
+    return { error: "Tidak diizinkan" };
   }
 
   try {
-
     if (!data.title || !data.courseId || !data.startDate || !data.dueDate) {
-      return { error: 'Data yang wajib diisi tidak lengkap.' };
+      return { error: "Data yang wajib diisi tidak lengkap." };
     }
-    
+
     await prisma.task.create({
       data: {
         title: data.title,
@@ -80,21 +77,20 @@ export async function createTask(data: TaskData) {
       },
     });
 
-  
-    revalidatePath('/tasks');
-    revalidatePath('/dashboard');
+    revalidatePath("/tasks");
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
-    console.error('Database Error:', error);
-    return { error: 'Gagal membuat tugas.' };
+    console.error("Database Error:", error);
+    return { error: "Gagal membuat tugas." };
   }
 }
 
 export async function updateTask(taskId: string, data: Partial<TaskData>) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return { error: 'Tidak diizinkan' };
+    return { error: "Tidak diizinkan" };
   }
 
   try {
@@ -103,22 +99,22 @@ export async function updateTask(taskId: string, data: Partial<TaskData>) {
     });
 
     if (!task) {
-      return { error: 'Tugas tidak ditemukan atau Anda tidak punya akses.' };
+      return { error: "Tugas tidak ditemukan atau Anda tidak punya akses." };
     }
 
     const { courseId, ...restOfData } = data;
-    const dataToUpdate: any = {
+    const dataToUpdate: Prisma.TaskUpdateInput = {
       ...restOfData,
       startDate: data.startDate ? new Date(data.startDate) : undefined,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
     };
-    
+
     if (courseId) {
       dataToUpdate.course = {
         connect: { id: courseId },
       };
     }
-    
+
     await prisma.task.update({
       where: {
         id: taskId,
@@ -126,21 +122,20 @@ export async function updateTask(taskId: string, data: Partial<TaskData>) {
       data: dataToUpdate,
     });
 
-    revalidatePath('/tasks');
-    revalidatePath('/dashboard');
+    revalidatePath("/tasks");
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
-    console.error('Database Error:', error);
-    return { error: 'Gagal memperbarui tugas.' };
+    console.error("Database Error:", error);
+    return { error: "Gagal memperbarui tugas." };
   }
 }
-
 
 export async function deleteTask(taskId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return { error: 'Tidak diizinkan' };
+    return { error: "Tidak diizinkan" };
   }
 
   try {
@@ -152,15 +147,15 @@ export async function deleteTask(taskId: string) {
     });
 
     if (result.count === 0) {
-      return { error: 'Gagal menghapus tugas atau tugas tidak ditemukan.' };
+      return { error: "Gagal menghapus tugas atau tugas tidak ditemukan." };
     }
 
-    revalidatePath('/tasks');
-    revalidatePath('/dashboard');
+    revalidatePath("/tasks");
+    revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
-    console.error('Database Error:', error);
-    return { error: 'Gagal menghapus tugas.' };
+    console.error("Database Error:", error);
+    return { error: "Gagal menghapus tugas." };
   }
 }

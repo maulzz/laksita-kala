@@ -13,8 +13,8 @@ import {
 export interface ScheduleWithCourse {
   id: string;
   dayOfWeek: DayOfWeek;
-  startTime: String;
-  endTime: String;
+  startTime: string;
+  endTime: string;
   location?: string | null;
   course: Course & { lecturer?: string | null };
 }

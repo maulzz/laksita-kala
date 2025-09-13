@@ -3,6 +3,7 @@ import { DayOfWeek } from '@/app/types';
 import { getClassSchedules } from './actions';
 import { getCourses } from '../courses/actions';
 import ScheduleView from './ScheduleView';
+import { ScheduleWithCourse } from '@/app/components/ScheduleCard';
 
 export default async function SchedulePage() {
   const schedules = await getClassSchedules();
@@ -15,7 +16,7 @@ export default async function SchedulePage() {
     }
     acc[day].push(schedule);
     return acc;
-  }, {} as Record<DayOfWeek, any[]>); 
+  }, {} as Record<DayOfWeek, ScheduleWithCourse[]>);
 
   for (const day in groupedSchedules) {
     groupedSchedules[day].sort((a, b) => 
