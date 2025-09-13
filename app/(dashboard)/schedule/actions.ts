@@ -7,6 +7,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { ClassType, DayOfWeek } from '@/app/types';
+import { ScheduleWithCourse } from '@/app/components/ScheduleCard';
 
 export async function getClassSchedules() {
   const session = await getServerSession(authOptions);
@@ -14,7 +15,7 @@ export async function getClassSchedules() {
     return [];
   }
   try {
-    const schedules = await prisma.classSchedule.findMany({
+    const schedulesFromDb = await prisma.classSchedule.findMany({
       where: {
         userId: session.user.id,
       },
@@ -22,6 +23,18 @@ export async function getClassSchedules() {
         course: true,
       },
     });
+
+    const schedules = schedulesFromDb.map(schedule => ({
+      ...schedule,
+      startTime: schedule.startTime.toISOString(),
+      endTime: schedule.endTime.toISOString(),
+  
+      course: {
+        ...schedule.course,
+        lecturer: schedule.course.lecturer || null, 
+      }
+    }));
+
     return schedules;
   } catch (error) {
     console.error('Database Error:', error);
