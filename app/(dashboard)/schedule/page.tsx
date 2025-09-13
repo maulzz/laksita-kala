@@ -21,12 +21,13 @@ export default async function SchedulePage() {
     {} as Record<DayOfWeek, ScheduleWithCourse[]>
   );
 
-  for (const day in groupedSchedules) {
-    groupedSchedules[day].sort(
+  Object.keys(groupedSchedules).forEach((day) => {
+    const key = day as DayOfWeek; 
+    groupedSchedules[key].sort(
       (a, b) =>
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     );
-  }
+  });
 
   return (
     <ScheduleView
