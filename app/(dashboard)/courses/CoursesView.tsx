@@ -7,7 +7,7 @@ import PageHeader from "@/app/components/PageHeader";
 import AddCourseModal from "@/app/components/AddCourseModal";
 import EditCourseModal from "@/app/components/EditCourseModal";
 import ConfirmModal from "@/app/components/ConfirmModal";
-import { Course } from "@prisma/client";
+import { Course } from "@/app/types";
 import { deleteCourse } from "./actions";
 import toast from "react-hot-toast";
 import { Menu, Transition } from "@headlessui/react";
