@@ -24,14 +24,13 @@ export async function getClassSchedules() {
       },
     });
 
-    const schedules = schedulesFromDb.map(schedule => ({
+    const schedules = schedulesFromDb.map((schedule: any) => ({ 
       ...schedule,
       startTime: schedule.startTime.toISOString(),
       endTime: schedule.endTime.toISOString(),
-  
       course: {
         ...schedule.course,
-        lecturer: schedule.course.lecturer || null, 
+        lecturer: schedule.course.lecturer || null,
       }
     }));
 
