@@ -4,10 +4,10 @@ import { create } from 'zustand';
 
 interface AddTaskStore {
   isOpen: boolean;
-  refreshKey: number; // <-- 1. Tambahkan state refreshKey
+  refreshKey: number; 
   openModal: () => void;
   closeModal: () => void;
-  triggerRefresh: () => void; // <-- 2. Tambahkan fungsi untuk memicu refresh
+  triggerRefresh: () => void; 
 }
 
 export const useAddTaskStore = create<AddTaskStore>((set) => ({

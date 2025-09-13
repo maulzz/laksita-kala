@@ -14,13 +14,17 @@ import {
   BookOpenIcon,
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 
 const navLinks = [
-  { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
-  { name: "Task List", href: "/tasks", icon: ListBulletIcon },
-  { name: "Calendar", href: "/calendar", icon: CalendarDaysIcon },
-  { name: "Mata Kuliah", href: "/courses", icon: BookOpenIcon },
+  { type: "link", name: "Dashboard", href: "/dashboard", icon: HomeIcon },
+  { type: "link", name: "List Tugas", href: "/tasks", icon: ListBulletIcon },
+  { type: "link", name: "Kalender", href: "/calendar", icon: CalendarDaysIcon },
+  { type: "divider" ,name: "", href: "", icon:""},
+  { type: "header", label: "Manajemen", name: "", href: "", icon:"" },
+  { type: "link", name: "Mata Kuliah", href: "/courses", icon: BookOpenIcon },
+  { type: "link", name: "Jadwal Kuliah", href: "/schedule", icon: ClockIcon },
 ];
 
 export default function DashboardSidebar() {
@@ -47,7 +51,26 @@ export default function DashboardSidebar() {
 
         <nav className="flex-grow">
           <ul className="space-y-2">
-            {navLinks.map((link) => {
+            {navLinks.map((link, index) => {
+              if (link.type === "divider") {
+                return (
+                  <hr
+                    key={`divider-${index}`}
+                    className="my-3 border-gray-200 dark:border-gray-700"
+                  />
+                );
+              }
+              if (link.type === "header") {
+                return (
+                  <li
+                    key={link.label}
+                    className="px-3 py-1 text-xs font-semibold uppercase text-gray-500"
+                  >
+                    {link.label}
+                  </li>
+                );
+              }
+
               const isActive = pathname.startsWith(link.href);
               return (
                 <li key={link.name}>

@@ -5,12 +5,10 @@ import { useState, useEffect, Fragment, useMemo } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
 import { useAddTaskStore } from "../hooks/useAddTaskStore";
+import { getCourses } from '@/app/(dashboard)/courses/actions';
+import { createTask } from '@/app/(dashboard)/tasks/actions';
 
-interface Course {
-  id: string;
-  name: string;
-  color: string;
-}
+import { Course, TaskPriority, TaskStatus, TaskType } from '@/app/types';
 
 const statusOptions = [
   { id: "BELUM_DIMULAI", label: "Belum Dimulai" },
@@ -30,9 +28,9 @@ export default function AddTaskModal() {
   const [courseId, setCourseId] = useState("");
   const [startDate, setStartDate] = useState(getTodayDefaultValue());
   const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState("SEDANG");
-  const [taskType, setTaskType] = useState("TUGAS_INDIVIDU");
-  const [status, setStatus] = useState("BELUM_DIMULAI");
+  const [priority, setPriority] = useState<TaskPriority>('SEDANG');
+  const [taskType, setTaskType] = useState<TaskType>('TUGAS_INDIVIDU');
+  const [status, setStatus] = useState<TaskStatus>('BELUM_DIMULAI');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,65 +41,48 @@ export default function AddTaskModal() {
 
   useEffect(() => {
     if (isOpen) {
-      setStartDate(getTodayDefaultValue());
-      const fetchCourses = async () => {
-        try {
-          const response = await fetch("/api/courses", {
-            credentials: "include",
-          });
-          const data = await response.json();
-          setCourses(data);
-          if (data.length > 0) {
-            setCourseId(data[0].id);
-          }
-        } catch (error) {
-          console.error("Gagal mengambil mata kuliah:", error);
+      setTitle('');
+      setDescription('');
+      const loadCourses = async () => {
+        const coursesData = await getCourses();
+        setCourses(coursesData);
+        if (coursesData.length > 0) {
+          setCourseId(coursesData[0].id);
         }
       };
-      fetchCourses();
+      loadCourses();
     }
   }, [isOpen]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (isDateInvalid) {
-      toast.error("Tanggal deadline tidak boleh sebelum tanggal mulai.");
+    setIsSubmitting(true);
+    
+    if (new Date(dueDate) < new Date(startDate)) {
+      toast.error('Tanggal deadline tidak boleh sebelum tanggal mulai.');
+      setIsSubmitting(false);
       return;
     }
+    
+    const toastId = toast.loading('Menambahkan tugas...');
+    const result = await createTask({
+      title,
+      description,
+      courseId,
+      startDate,
+      dueDate,
+      priority,
+      taskType,
+      status,
+    });
 
-    setIsSubmitting(true);
-    const toastId = toast.loading("Menambahkan tugas...");
+    setIsSubmitting(false);
 
-    try {
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          courseId,
-          startDate,
-          dueDate,
-          priority,
-          taskType,
-          status,
-        }),
-      });
-      if (!response.ok) throw new Error("Gagal menambahkan tugas.");
-
-      toast.success("Tugas baru berhasil ditambahkan!", { id: toastId });
-      triggerRefresh();
+    if (result.error) {
+      toast.error(result.error, { id: toastId });
+    } else {
+      toast.success('Tugas baru berhasil ditambahkan!', { id: toastId });
       closeModal();
-    } catch (error) {
-      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -152,6 +133,24 @@ export default function AddTaskModal() {
                       required
                       className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
                     />
+                  </div>
+
+                   <div>
+                    <label
+                      htmlFor="description"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      Deskripsi (Opsional)
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Contoh: Tugas dikumpulkan melalui Elita/Google Classroom."
+                      rows={3}
+                      className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
+                    ></textarea>
                   </div>
 
                   <div>
@@ -234,7 +233,7 @@ export default function AddTaskModal() {
                       <select
                         id="priority"
                         value={priority}
-                        onChange={(e) => setPriority(e.target.value)}
+                        onChange={(e) => setPriority(e.target.value as TaskPriority)}
                         required
                         className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
                       >
@@ -253,7 +252,7 @@ export default function AddTaskModal() {
                       <select
                         id="taskType"
                         value={taskType}
-                        onChange={(e) => setTaskType(e.target.value)}
+                        onChange={(e) => setTaskType(e.target.value as TaskType)}
                         required
                         className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
                       >
@@ -279,7 +278,7 @@ export default function AddTaskModal() {
                             name="status"
                             value={option.id}
                             checked={status === option.id}
-                            onChange={(e) => setStatus(e.target.value)}
+                            onChange={(e) => setStatus(e.target.value as TaskStatus)}
                             className="peer hidden"
                           />
                           <label

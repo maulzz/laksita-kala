@@ -2,15 +2,15 @@
 
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, FormEvent } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
-import { Task, Course } from "@/app/types";
+import { Task, Course, TaskData } from "@/app/types";
+import { updateTask } from "../(dashboard)/tasks/actions";
 
 interface EditTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onTaskUpdated: () => void;
   task: Task | null;
   courses: Course[];
 }
@@ -20,7 +20,6 @@ export default function EditTaskModal({
   onClose,
   task,
   courses,
-  onTaskUpdated,
 }: EditTaskModalProps) {
   const [formData, setFormData] = useState<Partial<Task>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,30 +54,29 @@ export default function EditTaskModal({
     e.preventDefault();
     if (!task) return;
 
+    const dataToUpdate = {
+      title: formData.title,
+      description: formData.description,
+      courseId: formData.courseId,
+      startDate: formData.startDate,
+      dueDate: formData.dueDate,
+      priority: formData.priority,
+      taskType: formData.taskType,
+      status: formData.status,
+    };
+
     setIsSubmitting(true);
     const toastId = toast.loading("Memperbarui tugas...");
 
-    try {
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+    const result = await updateTask(task.id, dataToUpdate as TaskData);
 
-      if (!response.ok) throw new Error("Gagal memperbarui tugas.");
+    setIsSubmitting(false);
 
+    if (result.error) {
+      toast.error(result.error, { id: toastId });
+    } else {
       toast.success("Tugas berhasil diperbarui!", { id: toastId });
-      onTaskUpdated();
       onClose();
-    } catch (error) {
-      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -136,10 +134,22 @@ export default function EditTaskModal({
                     />
                   </div>
 
-                  {/* <div>
-                  <label htmlFor="description" className="mb-2 block text-sm font-medium">Deskripsi (Opsional)</label>
-                  <textarea id="description" name="description" value={formData.description || ''} onChange={handleChange} rows={3} className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"></textarea>
-                </div> */}
+                  <div>
+                    <label
+                      htmlFor="description"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      Deskripsi (Opsional)
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description || ""}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
+                    ></textarea>
+                  </div>
 
                   <div>
                     <label

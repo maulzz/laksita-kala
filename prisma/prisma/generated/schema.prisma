@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./prisma/generated"
 }
 
 datasource db {
@@ -36,15 +37,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String          @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?         @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   courses       Course[]
   tasks         Task[]
+  schedules     ClassSchedule[]
 }
 
 model VerificationToken {
@@ -56,12 +58,14 @@ model VerificationToken {
 }
 
 model Course {
-  id        String   @id @default(uuid())
+  id        String          @id @default(uuid())
   name      String
   color     String
-  createdAt DateTime @default(now())
+  lecturer  String
+  createdAt DateTime        @default(now())
   tasks     Task[]
-  user      User     @relation(fields: [userId], references: [id])
+  schedules ClassSchedule[]
+  user      User            @relation(fields: [userId], references: [id])
   userId    String
 }
 
@@ -79,6 +83,21 @@ model Task {
   courseId    String
   user        User     @relation(fields: [userId], references: [id])
   userId      String
+}
+
+model ClassSchedule {
+  id           String    @id @default(uuid())
+  dayOfWeek    DayOfWeek
+  startTime    DateTime  @db.Time
+  endTime      DateTime  @db.Time
+  sks          Int
+  type         ClassType
+  location     String?
+  specificDate DateTime?
+  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId     String
+  user         User      @relation(fields: [userId], references: [id])
+  userId       String
 }
 
 enum Priority {
@@ -99,4 +118,19 @@ enum Status {
   BELUM_DIMULAI
   SEDANG_DIKERJAKAN
   SELESAI
+}
+
+enum DayOfWeek {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+  MINGGU
+}
+
+enum ClassType {
+  TEORI
+  PRAKTIKUM
 }

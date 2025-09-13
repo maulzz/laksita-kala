@@ -160,6 +160,7 @@ exports.Prisma.CourseScalarFieldEnum = {
   id: 'id',
   name: 'name',
   color: 'color',
+  lecturer: 'lecturer',
   createdAt: 'createdAt',
   userId: 'userId'
 };
@@ -174,6 +175,19 @@ exports.Prisma.TaskScalarFieldEnum = {
   taskType: 'taskType',
   status: 'status',
   createdAt: 'createdAt',
+  courseId: 'courseId',
+  userId: 'userId'
+};
+
+exports.Prisma.ClassScheduleScalarFieldEnum = {
+  id: 'id',
+  dayOfWeek: 'dayOfWeek',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  sks: 'sks',
+  type: 'type',
+  location: 'location',
+  specificDate: 'specificDate',
   courseId: 'courseId',
   userId: 'userId'
 };
@@ -212,13 +226,29 @@ exports.Status = exports.$Enums.Status = {
   SELESAI: 'SELESAI'
 };
 
+exports.DayOfWeek = exports.$Enums.DayOfWeek = {
+  SENIN: 'SENIN',
+  SELASA: 'SELASA',
+  RABU: 'RABU',
+  KAMIS: 'KAMIS',
+  JUMAT: 'JUMAT',
+  SABTU: 'SABTU',
+  MINGGU: 'MINGGU'
+};
+
+exports.ClassType = exports.$Enums.ClassType = {
+  TEORI: 'TEORI',
+  PRAKTIKUM: 'PRAKTIKUM'
+};
+
 exports.Prisma.ModelName = {
   Account: 'Account',
   Session: 'Session',
   User: 'User',
   VerificationToken: 'VerificationToken',
   Course: 'Course',
-  Task: 'Task'
+  Task: 'Task',
+  ClassSchedule: 'ClassSchedule'
 };
 
 /**

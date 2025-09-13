@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { PlusIcon } from '@heroicons/react/24/solid';
-import { useAddTaskStore } from '../hooks/useAddTaskStore';
 
 
 interface PageHeaderProps {

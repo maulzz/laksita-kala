@@ -1,71 +1,36 @@
 // src/components/EditCourseModal.tsx
-
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import toast from "react-hot-toast";
-
-interface Course {
-  id: string;
-  name: string;
-  color: string;
-}
+import { useFormStatus } from "react-dom";
+import { updateCourse } from "@/app/(dashboard)/courses/actions";
+import { Course } from "@prisma/client";
 
 interface EditCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCourseUpdated: () => void;
   course: Course | null;
 }
 
 export default function EditCourseModal({
   isOpen,
   onClose,
-  onCourseUpdated,
   course,
 }: EditCourseModalProps) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("#F97316");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (course) {
-      setName(course.name);
-      setColor(course.color);
-    }
-  }, [course]);
+  if (!course) return null;
+  const updateCourseWithId = updateCourse.bind(null, course.id);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!course) return;
-
-    setIsSubmitting(true);
-    const toastId = toast.loading("Memperbarui mata kuliah...");
-
-    try {
-      const response = await fetch(`/api/courses/${course.id}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, color }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Gagal memperbarui mata kuliah.");
-      }
-
-      toast.success("Mata kuliah berhasil diperbarui!", { id: toastId });
-      onCourseUpdated();
+  const handleAction = async (formData: FormData) => {
+    const result = await updateCourseWithId(formData);
+    if (result?.error) {
+      toast.error(result.error);
+    } else {
+      toast.success("Mata kuliah berhasil diperbarui!");
       onClose();
-    } catch (error) {
-      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -84,7 +49,7 @@ export default function EditCourseModal({
           <div className="fixed inset-0 bg-black/50" />
         </Transition.Child>
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -94,63 +59,58 @@ export default function EditCourseModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-gray-800">
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100"
-                >
+              <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                <Dialog.Title as="h3" className="text-lg font-bold">
                   Edit Mata Kuliah
                 </Dialog.Title>
                 <form
-                  onSubmit={handleSubmit}
-                  className="mt-4 flex flex-col gap-4"
+                  ref={formRef}
+                  action={handleAction}
+                  className="mt-4 space-y-4"
                 >
                   <div>
-                    <label
-                      htmlFor="editCourseName"
-                      className="mb-2 block text-sm font-medium"
-                    >
+                    <label htmlFor="name" className="mb-2 block text-sm">
                       Nama Mata Kuliah
                     </label>
                     <input
-                      id="editCourseName"
+                      name="name"
                       type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
                       required
-                      className="w-full rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-600 dark:bg-gray-700"
+                      defaultValue={course.name}
+                      className="w-full rounded-lg p-3 dark:bg-gray-700"
                     />
                   </div>
                   <div>
-                    <label
-                      htmlFor="editCourseColor"
-                      className="mb-2 block text-sm font-medium"
-                    >
+                    <label htmlFor="lecturer" className="mb-2 block text-sm">
+                      Nama Dosen
+                    </label>
+                    <input
+                      name="lecturer"
+                      type="text"
+                      defaultValue={course.lecturer || ''}
+                      className="w-full rounded-lg p-3 dark:bg-gray-700"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="color" className="mb-2 block text-sm">
                       Pilih Warna
                     </label>
                     <input
-                      id="editCourseColor"
+                      name="color"
                       type="color"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
-                      className="h-12 w-full cursor-pointer rounded-lg border-none bg-transparent p-0"
+                      defaultValue={course.color}
+                      className="h-12 w-full ..."
                     />
                   </div>
                   <div className="mt-4 flex justify-end gap-4">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                      className="rounded-md border border-gray-300 px-4 py-2 font-medium hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
+                    <button type="button" onClick={onClose}>
                       Batal
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex items-center justify-center rounded-md bg-orange-500 px-4 py-2 font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg bg-orange-500 px-4 py-2 text-white"
                     >
-                      {isSubmitting ? "Memperbarui..." : "Simpan Perubahan"}
+                      Simpan Perubahan
                     </button>
                   </div>
                 </form>

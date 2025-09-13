@@ -2,67 +2,51 @@
 
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, useTransition, FormEvent, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
+import { createCourse } from "@/app/(dashboard)/courses/actions";
 
 interface AddCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCourseAdded: () => void;
 }
 
 export default function AddCourseModal({
   isOpen,
   onClose,
-  onCourseAdded,
 }: AddCourseModalProps) {
-  const [name, setName] = useState("");
-  const [color, setColor] = useState("#ffffff");
+  const [isPending, startTransition] = useTransition();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
+    const form = event.currentTarget;
 
-    const delayPromise = new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const fetchPromise = fetch("/api/courses", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, color }),
+    const formData = new FormData(event.currentTarget);
+    startTransition(() => {
+      createCourse(formData).then((result) => {
+        if (result?.error) {
+          toast.error(result.error);
+        } else {
+          toast.success("Mata kuliah berhasil ditambahkan!");
+          form.reset();
+          onClose();
+        }
+      });
     });
-
-    try {
-      const [response] = await Promise.all([fetchPromise, delayPromise]);
-
-      if (!response.ok) {
-        throw new Error("Gagal menambahkan mata kuliah. Coba lagi.");
-      }
-
-      onCourseAdded();
-      onClose();
-      setName("");
-      setColor("#F97316");
-
-      toast.success("Mata kuliah berhasil ditambahkan!");
-    } catch (error) {
-      let errorMessage = "Terjadi kesalahan yang tidak diketahui.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
+
+  if (!isOpen) return null;
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={() => !isPending && onClose()}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -76,7 +60,7 @@ export default function AddCourseModal({
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -86,18 +70,12 @@ export default function AddCourseModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all dark:bg-gray-800">
-                <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100"
-                >
+              <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-800">
+                <Dialog.Title as="h3" className="text-lg font-bold">
                   Tambah Mata Kuliah Baru
                 </Dialog.Title>
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="mt-4 flex flex-col gap-4"
-                >
+                <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                   <div>
                     <label
                       htmlFor="courseName"
@@ -107,12 +85,25 @@ export default function AddCourseModal({
                     </label>
                     <input
                       id="courseName"
+                      name="name"
                       type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Contoh: Kalkulus Lanjut"
                       required
-                      className="w-full rounded-lg border border-gray-300 bg-white p-3 dark:border-gray-600 dark:bg-gray-700"
+                      className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="lecturerName"
+                      className="mb-2 block text-sm font-medium"
+                    >
+                      Nama Dosen (Opsional)
+                    </label>
+                    <input
+                      id="lecturerName"
+                      name="lecturer" 
+                      type="text"
+                      placeholder="Contoh: Restu Rakhmawati, S.Kom., M.Kom"
+                      className="w-full rounded-lg bg-gray-100 p-3 dark:bg-gray-700"
                     />
                   </div>
                   <div>
@@ -120,40 +111,31 @@ export default function AddCourseModal({
                       htmlFor="courseColor"
                       className="mb-2 block text-sm font-medium"
                     >
-                      Pilih Warna
+                      Pilih Warna Mata Kuliah
                     </label>
                     <input
                       id="courseColor"
+                      name="color"
                       type="color"
-                      value={color}
-                      onChange={(e) => setColor(e.target.value)}
+                      defaultValue="#F97316"
                       className="h-12 w-full cursor-pointer rounded-lg border-none bg-transparent p-0"
                     />
                   </div>
-
-                  {error && <p className="text-sm text-red-500">{error}</p>}
-
-                  <div className="mt-4 flex justify-end gap-4">
+                  <div className="flex justify-end gap-4 pt-2">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="rounded-md border border-gray-300 px-4 py-2 font-medium hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
+                      disabled={isPending}
+                      className="rounded-md px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex items-center justify-center rounded-md bg-orange-500 px-4 py-2 font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={isPending}
+                      className="rounded-lg bg-orange-500 px-4 py-2 text-white disabled:opacity-50"
                     >
-                      {isSubmitting ? (
-                        <>
-                          <ArrowPathIcon className="mr-2 h-5 w-5 animate-spin" />
-                          <span>Menyimpan...</span>
-                        </>
-                      ) : (
-                        "Simpan"
-                      )}
+                      {isPending ? "Menyimpan..." : "Simpan"}
                     </button>
                   </div>
                 </form>
