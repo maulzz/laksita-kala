@@ -9,7 +9,8 @@ import { revalidatePath } from 'next/cache';
 import { ClassType, DayOfWeek } from '@/app/types';
 import { ScheduleWithCourse } from '@/app/components/ScheduleCard';
 
-export async function getClassSchedules() {
+
+export async function getClassSchedules(): Promise<ScheduleWithCourse[]> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return [];
